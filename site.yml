@@ -1,26 +1,43 @@
 ---
+- name: Bootstrap python
+  hosts: computers
+  gather_facts: no
+  tasks:
+    - raw: sudo xbps-install python -Sy
+      ignore_errors: yes
+
 - name: Base Configuration
-  become: true
   hosts: computers
   tasks:
+    - name: Add lug mirror
+      become: true
+      lineinfile:
+        dest: '/etc/xbps.d/00-repository-main.conf'
+        line: 'repository=https://lug.utdallas.edu/mirror/void/current'
+        create: yes
+
     - name: Install packages
-      xbps: name={{ item }}
-      with_items:
-        - i3
-        - git-all
-        - xorg
-        - dbus
-        - i3status
-        - dmenu
-        - neovim
-        - python3.4-neovim
-        - python-neovim
-        - lightdm
-        - lightdm-gtk3-greeter
-        - zsh
+      become: true
+      xbps:
+        name:
+          - dbus
+          - dmenu
+          - firefox
+          - git-all
+          - i3
+          - i3status
+          - lightdm
+          - lightdm-gtk3-greeter
+          - neovim
+          - python-neovim
+          - python3.4-neovim
+          - rxvt-unicode
+          - xorg
+          - zsh
 
     - name: Enable services
-      file: src=/etc/service/{{ item }} state=link
+      file: src=/etc/sv/{{ item }} dest=/var/service/{{ item }} state=link
+      become: true
       with_items:
         - dbus
         - lightdm
@@ -29,10 +46,11 @@
     - name: Install Dotfiles
       git:
         repo: 'https://github.com/dinoocch/dotfiles.git'
-        dest: /home/lug/dotfiles
+        dest: /home/vagrant/dotfiles
+        accept_hostkey: true
 
     - name: Create Directories
-      file: src=/home/lug/{{ item }} state=directory mode=0750
+      file: path=/home/vagrant/{{ item }} state=directory mode=0750
       with_items:
         - '.config'
         - '.config/nvim'
@@ -44,7 +62,7 @@
         - '.i3'
 
     - name: Enable dotfiles
-      file: src=/home/lug/dotfiles/{{ item.from }} dest=/home/lug/{{ item.to }}
+      file: src=/home/vagrant/dotfiles/{{ item.from }} dest=/home/vagrant/{{ item.to }} state=link
       with_items:
         - { from: "zsh/sources", to: ".zsh" }
         - { from: "zsh/zshrc", to: ".zshrc" }

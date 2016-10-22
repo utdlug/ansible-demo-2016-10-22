@@ -1,2 +1,2 @@
 [computers]
-earth
+vagrant-box ansible_port=2222 ansible_host=localhost
