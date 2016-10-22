@@ -1,0 +1,57 @@
+---
+- name: Base Configuration
+  hosts: computers
+  tasks:
+    - name: Install packages
+      xbps: name={{ item }}
+      with_items:
+        - i3
+        - git-all
+        - xorg
+        - dbus
+        - i3status
+        - dmenu
+        - neovim
+        - python3.4-neovim
+        - python-neovim
+        - lightdm
+        - lightdm-gtk3-greeter
+        - zsh
+
+    - name: Enable services
+      file: src=/etc/service/{{ item }} state=link
+      with_items:
+        - dbus
+        - lightdm
+        - dhcpcd
+
+    - name: Install Dotfiles
+      git:
+        repo: 'https://github.com/dinoocch/dotfiles.git'
+        dest: /home/lug/dotfiles
+
+    - name: Create Directories
+      file: src=/home/lug/{{ item }} state=directory mode=0750
+      with_items:
+        - '.config'
+        - '.config/nvim'
+        - '.config/nvim/autoload'
+        - '.vim'
+        - '.vim/backups'
+        - '.vim/swaps'
+        - '.vim/undo'
+        - '.i3'
+
+    - name: Enable dotfiles
+      file: src=/home/lug/dotfiles/{{ item.from }} dest=/home/lug/{{ item.to }}
+      with_items:
+        - { from: "zsh/sources", to: ".zsh" }
+        - { from: "zsh/zshrc", to: ".zshrc" }
+        - { from: "zsh/zprofile", to: ".zprofile" }
+        - { from: "git/gitconfig", to: ".gitconfig" }
+        - { from: "nvim/init.vim", to: ".config/nvim/init.vim" }
+        - { from: "nvim/vim-plug/plug.vim", to: ".config/nvim/autoload/plug.vim" }
+        - { from: "nvim/vim-plug/plug.vim", to: ".config/nvim/autoload/plug.vim" }
+        - { from: "i3/config", to: ".i3/config" }
+        - { from: "x11/Xresources", to: ".Xresources" }
+        - { from: "tmux/tmux.conf", to: ".tmux.conf" }
