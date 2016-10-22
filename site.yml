@@ -1,5 +1,6 @@
 ---
 - name: Base Configuration
+  become: true
   hosts: computers
   tasks:
     - name: Install packages
